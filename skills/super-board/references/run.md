@@ -315,6 +315,7 @@ column), never built unchecked. `qa` cards are not pre-flighted: nothing is buil
    (`merge_policy.auto_max_lines`, default 400 changed lines). Growing past it mid-build → stop,
    push what you have, propose the split (vertical slices via `/to-tickets`) in a PR comment and
    move the card to Blocked `❓` — never push on past the cap (super-build → "Keep each PR small").
+4b. Local Codex review (optional, before the first push) — see "Local Codex review" below.
 5. Commit + push (always). Commits follow writing-standard.md § 1 (`✨ [feat] chat: stream replies` + short bullets).
 6. Open draft PR linked to the issue with the PR description template (title in commit-subject format, every block filled).
 7. Follow [PR author notes](pr-author-notes.md), then post the `[builder] [report]` PR comment (see "Commenting cadence").
@@ -328,10 +329,30 @@ column), never built unchecked. `qa` cards are not pre-flighted: nothing is buil
 2. Read PR review threads on this branch's PR; filter `[builder]` prefix.
 3. For each unresolved `[builder]` thread: read file:line + suggested fix, apply, resolve thread via graphql mutation.
 4. Address any new failure feedback from Tester's latest `❌` comment.
+4b. Local Codex review of the branch again before pushing — see "Local Codex review" below.
    (A Reviewer bounce reaches you as those same `[builder]` threads, listed in the latest `<!-- super-review:report -->` comment. A finding the Reviewer re-opened as `not fixed` was resolved without a fix last time — fix the code, not just the thread.)
 5. Commit + push to same branch.
 6. Verify ALL `[builder]` threads are resolved. If not, return to step 3.
 7. Refresh [PR author notes](pr-author-notes.md), rewrite `status`, `solution`, `history` blocks; post `[builder] [report]` PR + issue comments. Move Building → QA. Clean up worktree.
+
+### Local Codex review
+
+Optional, advisory, and never a reason to block. It catches what a PR-side Codex review would
+flag, before the PR exists, so a Codex finding costs a local fix instead of a push → review →
+rebuild round-trip. The PR-side Codex review still runs; this only shrinks what it finds.
+
+1. Commit your work locally first (the review reads the branch diff), then from the worktree:
+   `.claude/bin/super-board-codex-review.sh --base <config.base_branch> --output /tmp/codex-review-<N>.md`
+2. `codex-review: skipped <reason>` → carry on. The script skips when `codex` is not installed,
+   is signed out, has no usage left, times out (15 min), errors, or
+   `SUPER_BOARD_CODEX_REVIEW=0` is set.
+3. `codex-review: ran <file>` → read the findings. For each one in this diff that is a real
+   defect (you can point at the failing input or line), fix it test-first like any other bug and
+   amend into your work before pushing. Drop style nits, findings outside the diff, and anything
+   that would grow the PR past the size cap or the ticket's scope — say why in one line.
+   Do not re-run the review after fixing; one pass per push.
+4. Record one line in the `[builder] [report]` comment:
+   `Codex review: ran — <n> fixed, <m> dropped (<why>)` or `Codex review: skipped (<reason>)`.
 
 ### Tester (first pass — repo-backed)
 
