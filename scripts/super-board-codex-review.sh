@@ -24,6 +24,8 @@ set -uo pipefail
 
 base='' output='' limit="${SUPER_BOARD_CODEX_REVIEW_TIMEOUT:-900}"
 while [ $# -gt 0 ]; do
+  # Every flag takes a value; without one `shift 2` fails and the loop never ends.
+  [ $# -ge 2 ] || { echo "$1 needs a value" >&2; exit 64; }
   case "$1" in
     --base) base="${2:-}"; shift 2 ;;
     --output) output="${2:-}"; shift 2 ;;

@@ -69,4 +69,10 @@ grep -q -- '--base origin/main' "$FAKE_ARGS" || fail "origin/main preferred, got
 rc=0; (cd "$REPO" && bash "$S" >/dev/null 2>&1) || rc=$?; [ "$rc" = 64 ] || fail "no --base exits 64, got $rc"
 rc=0; (cd "$REPO" && bash "$S" --base main --timeout x >/dev/null 2>&1) || rc=$?; [ "$rc" = 64 ] || fail "bad --timeout exits 64"
 
+# A flag with no value must exit 64, not loop (`shift 2` fails silently without set -e).
+for flag in --base --output --timeout; do
+  rc=0; (cd "$REPO" && timeout 5 bash "$S" --base main "$flag" >/dev/null 2>&1) || rc=$?
+  [ "$rc" = 64 ] || fail "trailing $flag exits 64, got $rc"
+done
+
 echo "PASS: test-codex-review.sh"
